@@ -10,7 +10,7 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from .core.config import settings
 from .core.logging import setup_logging
 from .db.base import init_db
-from .api.V1.routes import auth, health, stocks, news, risks
+from .api.V1.routes import auth, health, stocks, news, risks, refresh, seed
 
 # Setup logging
 setup_logging()
@@ -58,6 +58,8 @@ def create_app() -> FastAPI:
     app.include_router(stocks.router, prefix="/api/v1", tags=["Stocks"])
     app.include_router(news.router, prefix="/api/v1", tags=["News"])
     app.include_router(risks.router, prefix="/api/v1", tags=["Risks"])
+    app.include_router(refresh.router, prefix="/api/v1", tags=["Data Refresh"])
+    app.include_router(seed.router, prefix="/api/v1", tags=["Seeding"])
 
     logger.info("FastAPI application created successfully")
     return app

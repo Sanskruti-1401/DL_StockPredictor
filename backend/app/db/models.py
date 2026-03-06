@@ -24,6 +24,7 @@ class Stock(Base):
     pe_ratio = Column(Float)
     dividend_yield = Column(Float)
     beta = Column(Float)
+    active = Column(Boolean, default=True, index=True)  # For tracking which stocks to refresh
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
