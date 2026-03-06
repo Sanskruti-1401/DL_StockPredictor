@@ -21,19 +21,33 @@ export const Dashboard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'analysis' | 'risk'>('overview');
 
+  console.log('🎨 [Dashboard] Render:', { stocks: stocks.length, loading, error, selectedStock });
+
   useEffect(() => {
     const loadStocks = async () => {
       try {
         setLoading(true);
-        const { data } = await stockEndpoints.listStocks(0, 20);
-        if (data) {
+        console.log('📊 [Dashboard] Fetching stocks...');
+        const { data, error: err } = await stockEndpoints.listStocks(0, 20);
+        
+        console.log('📊 [Dashboard] Response received:', { data, err });
+        
+        if (err) {
+          console.error('❌ [Dashboard] Error from API:', err);
+          setError(err);
+        } else if (data) {
+          console.log('✅ [Dashboard] Stocks loaded:', data.length, 'stocks');
+          data.forEach((s: any) => console.log(`  - ${s.symbol}: ${s.name}`));
           setStocks(data);
           if (!selectedStock && data.length > 0) {
             setSelectedStock(data[0].id);
           }
+        } else {
+          console.warn('⚠️ [Dashboard] No data returned');
         }
       } catch (err) {
-        setError('Failed to load stocks');
+        console.error('💥 [Dashboard] Caught exception:', err);
+        setError('Failed to load stocks: ' + (err instanceof Error ? err.message : 'Unknown error'));
       } finally {
         setLoading(false);
       }
@@ -43,23 +57,31 @@ export const Dashboard: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (!selectedStock) return;
+    if (!selectedStock) {
+      console.log('⏭️ [Dashboard] No selectedStock, skipping detail load');
+      return;
+    }
 
     const loadStockDetails = async () => {
       try {
-        const [stockRes, predictionRes] = await Promise.all([
-          stockEndpoints.getStock(selectedStock),
-          predictionEndpoints.getLatestPrediction(selectedStock),
-        ]);
+        console.log('📈 [Dashboard] Loading details for stock:', selectedStock);
+        const stockRes = await stockEndpoints.getStock(selectedStock);
+        
+        console.log('📈 [Dashboard] Stock response:', { data: !!stockRes.data, error: stockRes.error });
 
         if (stockRes.data) {
+          console.log('✅ [Dashboard] Setting selectedStockData');
           setSelectedStockData(stockRes.data);
+        } else if (stockRes.error) {
+          console.error('❌ [Dashboard] Stock fetch error:', stockRes.error);
         }
-        if (predictionRes.data) {
-          setPrediction(predictionRes.data);
-        }
+        
+        // Predictions endpoint doesn't exist yet, skip it for now
+        console.log('⏭️ [Dashboard] Skipping predictions (endpoint not yet implemented)');
+        
       } catch (err) {
-        setError('Failed to load stock details');
+        console.error('💥 [Dashboard] Exception loading details:', err);
+        setError('Failed to load stock details: ' + (err instanceof Error ? err.message : 'Unknown'));
       }
     };
 
@@ -81,50 +103,23 @@ export const Dashboard: React.FC = () => {
         <p className="subtitle">AI-powered stock analysis and predictions</p>
       </div>
 
-      <div className="dashboard-content">
-        {/* Left Sidebar - Stock List */}
-        <div className="dashboard-sidebar">
-          <div className="sidebar-section">
-            <h3>My Watchlist</h3>
-            {watchlist.length === 0 ? (
-              <p className="empty-message">No stocks in watchlist</p>
-            ) : (
-              <div className="stock-list">
-                {stocks
-                  .filter((s: any) => watchlist.includes(s.id))
-                  .map((stock: any) => (
-                    <button
-                      key={stock.id}
-                      className={`stock-item ${selectedStock === stock.id ? 'active' : ''}`}
-                      onClick={() => setSelectedStock(stock.id)}
-                    >
-                      <span className="symbol">{stock.symbol}</span>
-                      <span className="name">{stock.name}</span>
-                    </button>
-                  ))}
-              </div>
-            )}
-          </div>
-
-          <div className="sidebar-section">
-            <h3>Featured Stocks</h3>
-            <div className="stock-list">
-              {stocks.slice(0, 5).map((stock: any) => (
-                <button
-                  key={stock.id}
-                  className={`stock-item ${selectedStock === stock.id ? 'active' : ''}`}
-                  onClick={() => setSelectedStock(stock.id)}
-                >
-                  <span className="symbol">{stock.symbol}</span>
-                  <span className="name">{stock.name}</span>
-                </button>
-              ))}
-            </div>
-          </div>
+      {/* Featured Stocks Bar - Horizontal */}
+      <div className="featured-stocks-bar">
+        <div className="featured-stocks-label">Featured Stocks</div>
+        <div className="featured-stocks-scroll">
+          {stocks.slice(0, 10).map((stock: any) => (
+            <button
+              key={stock.id}
+              className={`featured-stock-chip ${selectedStock === stock.id ? 'active' : ''}`}
+              onClick={() => setSelectedStock(stock.id)}
+            >
+              <span className="symbol">{stock.symbol}</span>
+            </button>
+          ))}
         </div>
+      </div>
 
-        {/* Main Content */}
-        <div className="dashboard-main">
+      <div className="dashboard-content">
           {selectedStockData ? (
             <>
               {/* Stock Header */}

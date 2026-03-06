@@ -201,6 +201,11 @@ async def get_price_history(
         from datetime import datetime, timedelta
         from ...db.models import PriceHistory
         
+        # Verify stock exists
+        stock = db.query(Stock).filter(Stock.id == stock_id).first()
+        if not stock:
+            raise HTTPException(status_code=404, detail="Stock not found")
+        
         cutoff_date = datetime.utcnow() - timedelta(days=days)
         
         prices = db.query(PriceHistory).filter(
@@ -208,22 +213,25 @@ async def get_price_history(
             PriceHistory.date >= cutoff_date
         ).order_by(PriceHistory.date.asc()).all()
         
+        # Return empty array instead of 404 if no data
         if not prices:
-            raise HTTPException(status_code=404, detail="No price history found")
+            return []
         
-        return [
-            {
-                "date": p.date,
-                "open": p.open_price,
-                "high": p.high_price,
-                "low": p.low_price,
-                "close": p.close_price,
-                "volume": p.volume,
-            }
-            for p in prices
-        ]
+        result = []
+        for p in prices:
+            result.append({
+                "date": p.date.isoformat() if p.date else None,
+                "open": float(p.open_price) if p.open_price else None,
+                "high": float(p.high_price) if p.high_price else None,
+                "low": float(p.low_price) if p.low_price else None,
+                "close": float(p.close_price) if p.close_price else None,
+                "volume": int(p.volume) if p.volume else None,
+            })
+        
+        return result
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error getting price history: {e}")
-        raise HTTPException(status_code=500, detail="Error getting price history")
+        raise HTTPException(status_code=500, detail=f"Error getting price history: {str(e)}")
+

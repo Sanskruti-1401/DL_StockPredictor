@@ -51,6 +51,8 @@ class MarketDataService:
                 f"{from_date}/{to_date}"
             )
             
+            logger.info(f"Polygon API URL: {endpoint}")
+            
             params = {
                 "apiKey": self.polygon_key,
                 "sort": "asc",
@@ -62,8 +64,11 @@ class MarketDataService:
             
             data = response.json()
             
-            if data.get("status") != "OK":
-                logger.warning(f"Polygon API returned status: {data.get('status')}")
+            logger.info(f"Polygon response status: {data.get('status')}, results count: {data.get('resultsCount', 0)}")
+            
+            # Accept both OK and DELAYED statuses
+            if data.get("status") not in ["OK", "DELAYED"]:
+                logger.warning(f"Polygon API returned status: {data.get('status')}, response: {data}")
                 return []
             
             price_list = []
@@ -114,7 +119,7 @@ class MarketDataService:
             
             data = response.json()
             
-            if data.get("status") != "OK":
+            if data.get("status") != "OK" and data.get("status") != "DELAYED":
                 logger.warning(f"Polygon API returned status for latest quote: {data.get('status')}")
                 return None
             
@@ -169,7 +174,7 @@ class MarketDataService:
             
             data = response.json()
             
-            if data.get("status") != "OK":
+            if data.get("status") != "OK" and data.get("status") != "DELAYED":
                 logger.warning(f"Polygon API returned status for ticker details: {data.get('status')}")
                 return None
             
@@ -192,6 +197,8 @@ class MarketDataService:
         except Exception as e:
             logger.error(f"Error fetching stock details for {symbol}: {e}")
             return None
+
+    def update_price_data(self, stock_id: int, price_data: dict) -> Optional[PriceHistory]:
         """
         Store or update price data in database.
         
@@ -334,8 +341,8 @@ class MarketDataService:
                     stats["errors"].append(error_msg)
                     logger.error(error_msg)
                 
-                # Rate limiting for Polygon API
-                time.sleep(0.1)
+                # Rate limiting for Polygon API (FREE tier: 5 requests/minute = 1 request per 12 seconds)
+                time.sleep(12)
             
             stats["completed_at"] = datetime.utcnow().isoformat()
             return stats
@@ -397,8 +404,8 @@ class MarketDataService:
                     stats["errors"].append(f"Error refreshing {symbol}: {str(e)}")
                     logger.error(f"Error refreshing {symbol}: {e}")
                 
-                # Rate limiting
-                time.sleep(0.1)
+                # Rate limiting for Polygon API
+                time.sleep(12)
             
             return stats
             

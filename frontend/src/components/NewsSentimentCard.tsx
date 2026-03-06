@@ -79,26 +79,26 @@ export const NewsSentimentCard: React.FC<NewsSentimentCardProps> = ({
 
       {/* Sentiment Summary */}
       <div className="sentiment-summary">
-        <div className={`sentiment-gauge ${getSentimentColor(sentiment.sentiment_trend)}`}>
-          <div className="sentiment-trend">{sentiment.sentiment_trend}</div>
+        <div className={`sentiment-gauge ${getSentimentColor(sentiment?.sentiment_trend)}`}>
+          <div className="sentiment-trend">{sentiment?.sentiment_trend ?? 'N/A'}</div>
           <div className="sentiment-score">
-            {sentiment.average_sentiment > 0 ? '+' : ''}
-            {sentiment.average_sentiment.toFixed(2)}
+            {(sentiment?.average_sentiment ?? 0) > 0 ? '+' : ''}
+            {(sentiment?.average_sentiment ?? 0).toFixed(2)}
           </div>
         </div>
 
         <div className="sentiment-stats">
           <div className="stat">
             <span className="label">Total Articles</span>
-            <span className="value">{sentiment.total_articles}</span>
+            <span className="value">{sentiment?.total_articles ?? 0}</span>
           </div>
           <div className="stat positive">
             <span className="label">Positive</span>
-            <span className="value">{sentiment.positive_percent.toFixed(0)}%</span>
+            <span className="value">{(sentiment?.positive_percent ?? 0).toFixed(0)}%</span>
           </div>
           <div className="stat negative">
             <span className="label">Negative</span>
-            <span className="value">{sentiment.negative_percent.toFixed(0)}%</span>
+            <span className="value">{(sentiment?.negative_percent ?? 0).toFixed(0)}%</span>
           </div>
         </div>
       </div>
@@ -106,31 +106,31 @@ export const NewsSentimentCard: React.FC<NewsSentimentCardProps> = ({
       {/* Sentiment Distribution */}
       <div className="sentiment-distribution">
         <div className="distribution-bar">
-          {sentiment.positive > 0 && (
+          {(sentiment?.positive ?? 0) > 0 && (
             <div
               className="distribution-segment positive"
               style={{
-                width: `${(sentiment.positive / sentiment.total_articles) * 100}%`,
+                width: `${((sentiment?.positive ?? 0) / (sentiment?.total_articles ?? 1)) * 100}%`,
               }}
-              title={`Positive: ${sentiment.positive}`}
+              title={`Positive: ${sentiment?.positive ?? 0}`}
             />
           )}
-          {sentiment.neutral > 0 && (
+          {(sentiment?.neutral ?? 0) > 0 && (
             <div
               className="distribution-segment neutral"
               style={{
-                width: `${(sentiment.neutral / sentiment.total_articles) * 100}%`,
+                width: `${((sentiment?.neutral ?? 0) / (sentiment?.total_articles ?? 1)) * 100}%`,
               }}
-              title={`Neutral: ${sentiment.neutral}`}
+              title={`Neutral: ${sentiment?.neutral ?? 0}`}
             />
           )}
-          {sentiment.negative > 0 && (
+          {(sentiment?.negative ?? 0) > 0 && (
             <div
               className="distribution-segment negative"
               style={{
-                width: `${(sentiment.negative / sentiment.total_articles) * 100}%`,
+                width: `${((sentiment?.negative ?? 0) / (sentiment?.total_articles ?? 1)) * 100}%`,
               }}
-              title={`Negative: ${sentiment.negative}`}
+              title={`Negative: ${sentiment?.negative ?? 0}`}
             />
           )}
         </div>

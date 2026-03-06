@@ -5,6 +5,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User } from '../api/endpoint';
 import { authEndpoints } from '../api/endpoint';
+import { apiClient } from '../api/client';
 
 interface AuthContextType {
   user: User | null;
@@ -35,15 +36,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }: { 
     const checkAuth = async () => {
       const token = localStorage.getItem('access_token');
       if (token) {
+        apiClient.setToken(token);
         try {
           const { data } = await authEndpoints.getCurrentUser();
           if (data) {
             setUser(data);
           } else {
-            localStorage.removeItem('access_token');
+            apiClient.clearToken();
           }
         } catch (error) {
-          localStorage.removeItem('access_token');
+          apiClient.clearToken();
         }
       }
       setIsLoading(false);
@@ -53,14 +55,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }: { 
   }, []);
 
   const login = (userData: User, accessToken: string, refreshToken: string) => {
+    console.log('👤 [AuthProvider] login() called with user:', userData.email);
+    console.log('🔐 [AuthProvider] Token lengths:', {
+      accessToken: accessToken.length,
+      refreshToken: refreshToken.length,
+    });
+    
     setUser(userData);
-    localStorage.setItem('access_token', accessToken);
+    console.log('👤 [AuthProvider] User state set');
+    
+    apiClient.setToken(accessToken);
+    console.log('🔑 [AuthProvider] apiClient token set, calling setToken()');
+    
     localStorage.setItem('refresh_token', refreshToken);
+    console.log('💾 [AuthProvider] Refresh token stored in localStorage');
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('access_token');
+    apiClient.clearToken();
     localStorage.removeItem('refresh_token');
   };
 
@@ -74,7 +87,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }: { 
       if (error || !data) {
         throw new Error(error || 'Token refresh failed');
       }
-      localStorage.setItem('access_token', data.access_token);
+      apiClient.setToken(data.access_token);
       localStorage.setItem('refresh_token', data.refresh_token);
     } catch (error) {
       logout();

@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 # Security setup
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 security = HTTPBearer()
 
 
@@ -49,6 +49,10 @@ class UserResponse(BaseModel):
     full_name: str | None
     is_active: bool
     created_at: datetime
+
+
+class AuthResponse(TokenResponse):
+    user: UserResponse
 
 
 # Utility functions
@@ -131,7 +135,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 
 
 # Routes
-@router.post("/register", response_model=UserResponse)
+@router.post("/register", response_model=AuthResponse)
 async def register(request: RegisterRequest, db: Session = Depends(get_db)):
     """Register a new user."""
     try:
@@ -159,8 +163,19 @@ async def register(request: RegisterRequest, db: Session = Depends(get_db)):
         db.commit()
         db.refresh(user)
         
+        # Create tokens
+        access_token = create_access_token(user.id)
+        refresh_token = create_refresh_token(user.id)
+        
         logger.info(f"New user registered: {user.email}")
-        return user
+        
+        return {
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "token_type": "bearer",
+            "expires_in": settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+            "user": user,
+        }
     except HTTPException:
         raise
     except Exception as e:
@@ -172,7 +187,7 @@ async def register(request: RegisterRequest, db: Session = Depends(get_db)):
         )
 
 
-@router.post("/login", response_model=TokenResponse)
+@router.post("/login", response_model=AuthResponse)
 async def login(request: LoginRequest, db: Session = Depends(get_db)):
     """Login user and return tokens."""
     try:
@@ -202,6 +217,7 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
             "refresh_token": refresh_token,
             "token_type": "bearer",
             "expires_in": settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+            "user": user,
         }
     except HTTPException:
         raise

@@ -28,17 +28,36 @@ export const Login: React.FC = () => {
 
     try {
       setLoading(true);
+      console.log('🔵 [Login] Starting login with:', { email });
+      
       const { data, error: err } = await authEndpoints.login({
         email,
         password,
       });
 
+      console.log('🟢 [Login] Response received:', { data, err });
+
       if (err) {
+        console.error('❌ [Login] Error from API:', err);
         setError(err);
       } else if (data) {
+        console.log('✅ [Login] Data received:', {
+          user: data.user?.email,
+          access_token: data.access_token ? 'present' : 'missing',
+          refresh_token: data.refresh_token ? 'present' : 'missing',
+        });
+        
+        console.log('🔄 [Login] Calling login() function...');
         login(data.user, data.access_token, data.refresh_token);
+        
+        console.log('📍 [Login] Navigating to dashboard...');
         navigate('/dashboard');
+        
+        console.log('✨ [Login] Navigate called');
       }
+    } catch (err) {
+      console.error('💥 [Login] Caught exception:', err);
+      setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
     }

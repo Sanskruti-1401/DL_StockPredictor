@@ -45,6 +45,9 @@ class ApiClient {
 
     if (this.token) {
       headers.Authorization = `Bearer ${this.token}`;
+      console.log('🔐 [ApiClient] Token found, adding Authorization header');
+    } else {
+      console.log('⚠️ [ApiClient] No token available');
     }
 
     return headers;
@@ -57,6 +60,8 @@ class ApiClient {
   ): Promise<ApiResponse<T>> {
     try {
       const url = `${this.baseUrl}${endpoint}`;
+      console.log(`🌐 [ApiClient] ${method} ${url}`, { token: this.token ? 'present' : 'missing' });
+      
       const options: RequestInit = {
         method,
         headers: this.getHeaders(),
@@ -67,22 +72,33 @@ class ApiClient {
       }
 
       const response = await fetch(url, options);
+      console.log(`📥 [ApiClient] Response status: ${response.status}`);
 
       if (!response.ok) {
         if (response.status === 401) {
+          console.log('🔐 [ApiClient] 401 Unauthorized, clearing token');
           this.clearToken();
           window.location.href = '/login';
         }
-        const error: ApiError = await response.json();
+        let error_msg = 'Unknown error';
+        try {
+          const error: ApiError = await response.json();
+          error_msg = error.detail || `Error: ${response.status}`;
+        } catch {
+          error_msg = `Error: ${response.status}`;
+        }
+        console.error(`❌ [ApiClient] Request failed: ${error_msg}`);
         return {
-          error: error.detail || `Error: ${response.status}`,
+          error: error_msg,
           status: response.status,
         };
       }
 
       const data = await response.json();
+      console.log(`✅ [ApiClient] Response data received, ${typeof data === 'object' ? Object.keys(data as any).length : 1} fields`);
       return { data, status: response.status };
     } catch (error) {
+      console.error('💥 [ApiClient] Request exception:', error);
       return {
         error: error instanceof Error ? error.message : 'Unknown error',
         status: 500,
