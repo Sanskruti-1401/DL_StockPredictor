@@ -13,7 +13,25 @@ An AI-powered stock price prediction dashboard that combines machine learning, t
 - **Market Fundamentals**: P/E ratio, market cap, dividend yield display
 - **Stock Recommendations**: BUY/SELL/HOLD recommendations based on multi-factor analysis
 
-## 🛠️ Tech Stack
+## � Screenshots
+
+### Dashboard Overview
+![Dashboard](docs/images/dashboard.png)
+*Main dashboard showing prediction header, price chart, and insights*
+
+### AI Predictions & Confidence
+![Predictions](docs/images/predictions.png)
+*24-hour AI price forecast with confidence gauge*
+
+### Interactive Charts
+![Charts](docs/images/charts.png)
+*Price history chart with real-time updates and prediction overlay*
+
+### Market Insights
+![Insights](docs/images/insights.png)
+*Technical analysis, fundamentals, and sentiment data*
+
+## �🛠️ Tech Stack
 
 ### Frontend
 - **React 18** + TypeScript + Vite
