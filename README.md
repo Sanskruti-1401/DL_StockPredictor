@@ -257,6 +257,24 @@ VITE_WS_URL=ws://localhost:8000
 - **WebSocket Update Frequency**: 1-5 second intervals
 - **Dashboard Load Time**: < 2 seconds
 
+## 📄 Resume Brief
+
+> Copy-paste the blurb below directly into your resume or LinkedIn project section.
+
+---
+
+**AI-Powered Stock Price Predictor** | Python · FastAPI · React · TypeScript · WebSocket · SQLAlchemy · NumPy
+
+Built a full-stack, real-time stock market dashboard that uses machine learning to generate 24-hour price forecasts with confidence intervals. The ML engine applies polynomial regression for trend analysis, historical-return volatility modeling, and RSI-based momentum scoring to produce BUY / SELL / HOLD recommendations. A WebSocket layer streams live price updates to a React + Chart.js frontend, while a FastAPI backend exposes a versioned REST API backed by SQLite. Additional features include JWT authentication, news sentiment analysis, and portfolio risk metrics.
+
+**Key highlights:**
+- Engineered an ML prediction pipeline (trend · volatility · RSI · momentum) generating sub-500 ms forecasts with dynamic confidence scoring (50%–95%)
+- Designed and implemented 10+ REST endpoints and a WebSocket stream for real-time market data ingestion
+- Built an interactive React dashboard with live charts, technical-analysis panels, and sentiment insight cards
+- Containerized the full stack with Docker Compose for reproducible one-command deployment
+
+---
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please:
